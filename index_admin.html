@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Pengurusan Kehadiran Majlis - Negeri Kedah</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; padding: 0 !important; }
+      .print-shadow-none { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+    }
+
+    /* Custom Interactivity Styles for Selected Radio Cards */
+    .radio-card {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .radio-card:hover {
+      transform: translateY(-2px);
+    }
+    .radio-card:has(input:checked) {
+      border-color: #0f172a !important;
+      background-color: #f8fafc !important;
+      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.03);
+    }
+    .radio-card:has(input:checked) .icon-box {
+      background-color: #0f172a !important;
+      color: #ffffff !important;
+      transform: scale(1.05);
+    }
+    .radio-card:has(input:checked) .check-badge {
+      display: flex !important;
+      animation: popIn 0.2s ease-out forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 min-h-screen py-8 px-4 font-sans text-slate-800 antialiased selection:bg-slate-900 selection:text-white">
+
+  <div class="max-w-3xl mx-auto">
+    
+    <!-- BANNER ATAS (LOGO KEDAH & TAB PEMILIH) -->
+    <div class="no-print bg-white/80 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-xl shadow-slate-200/50 mb-6 border border-slate-200/80 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-3.5">
+        <!-- LOGO JATA KEDAH -->
+        <div class="w-12 h-12 rounded-xl bg-slate-900/5 p-1.5 flex items-center justify-center border border-slate-200/60 shadow-inner">
+          <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Coat_of_arms_of_Kedah.svg/3840px-Coat_of_arms_of_Kedah.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Logo Kedah" class="max-h-full max-w-full object-contain">
+        </div>
+        <div>
+          <h1 class="font-extrabold text-base sm:text-lg uppercase tracking-wider text-slate-900">Sistem Kehadiran Majlis</h1>
+          <p class="text-xs text-slate-500 font-semibold">Negeri Kedah Darul Aman</p>
+        </div>
+      </div>
+      <div class="flex gap-2 w-full sm:w-auto">
+        <button onclick="switchTab('admin')" id="tab-admin-btn" class="flex-1 sm:flex-none px-5 py-2.5 text-xs font-extrabold rounded-xl bg-slate-900 text-white hover:bg-slate-800 transition-all duration-200 shadow-lg shadow-slate-900/20 active:scale-95">⚙️ Tetapan Admin</button>
+        <a href="index.html" target="_blank" class="flex-1 sm:flex-none px-5 py-2.5 text-xs font-extrabold rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300/80 transition-all duration-200 active:scale-95 text-center">📝 Buka Borang Tetamu</a>
+      </div>
+    </div>
+
+    <!-- ==================== PENGURUSAN MAJLIS ==================== -->
+    <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+        <div>
+          <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">📋 Senarai Majlis</h2>
+          <p class="text-xs text-slate-500 font-medium mt-1">Pilih majlis untuk edit atau salin link borang tetamu.</p>
+        </div>
+        <button type="button" onclick="startNewEvent()" class="bg-slate-900 hover:bg-slate-800 text-white font-black py-3 px-5 rounded-xl text-sm shadow-lg">＋ Tambah Majlis</button>
+      </div>
+      <div class="mb-4 relative">
+        <input type="search" id="event-search" oninput="filterEvents()"
+          class="w-full px-4 py-3 pl-11 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none text-sm font-medium"
+          placeholder="Cari majlis ikut nama, ID, tarikh atau lokasi...">
+        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">🔎</span>
+      </div>
+      <div id="event-search-info" class="hidden text-xs text-slate-500 mb-3"></div>
+      <div id="event-list" class="space-y-3">
+        <div class="text-sm text-slate-500 bg-slate-50 rounded-xl p-4">Belum memuatkan senarai majlis.</div>
+      </div>
+    </div>
+
+    <!-- ==================== BAHAGIAN 1: TETAPAN ADMIN ==================== -->
+    <div id="admin-section" class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 mb-8 transition-all">
+      <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 mb-6 pb-3 border-b border-slate-100 flex items-center gap-3">
+        <span class="p-2 bg-slate-100 rounded-lg text-sm">⚙️</span> Tetapan Admin (Urus Setia)
+      </h2>
+      <form id="adminForm" class="space-y-5">
+        <input type="hidden" id="admin_event_id" value="">
+        <input type="hidden" id="admin_event_status" value="Aktif">
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Nama Majlis <span class="text-red-500">*</span></label>
+          <input type="text" id="admin_nama_majlis" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="Contoh: Majlis Anugerah Cemerlang 2026" required>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Tarikh Majlis <span class="text-red-500">*</span></label>
+            <input type="date" id="admin_tarikh" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" required>
+          </div>
+          <div>
+            <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Masa Majlis <span class="text-red-500">*</span></label>
+            <input type="time" id="admin_masa" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" required>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Lokasi / Tempat Majlis <span class="text-red-500">*</span></label>
+          <input type="text" id="admin_lokasi" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="Contoh: Dewan Utama, Wisma Darul Aman, Alor Setar" required>
+        </div>
+
+        <!-- TETAPAN JENIS KEHADIRAN -->
+        <div class="space-y-2 pt-2">
+          <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Jenis Kehadiran Tetamu <span class="text-red-500">*</span></label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <label class="radio-card cursor-pointer border-2 border-slate-200 rounded-2xl p-4 flex items-center gap-3.5 bg-white relative">
+              <input type="radio" name="admin_max_guests" value="1" class="sr-only" checked>
+              <div class="icon-box w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center text-xl transition-all shadow-sm">👤</div>
+              <div>
+                <div class="font-bold text-sm text-slate-900">Seorang</div>
+                <div class="text-xs text-slate-500 font-medium mt-0.5">Hadir / Diwakili / Tidak Hadir</div>
+              </div>
+              <div class="check-badge hidden absolute top-3 right-3 w-5 h-5 bg-slate-900 text-white rounded-full items-center justify-center font-bold text-[10px] shadow">✓</div>
+            </label>
+
+            <label class="radio-card cursor-pointer border-2 border-slate-200 rounded-2xl p-4 flex items-center gap-3.5 bg-white relative">
+              <input type="radio" name="admin_max_guests" value="2" class="sr-only">
+              <div class="icon-box w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center text-xl transition-all shadow-sm">👥</div>
+              <div>
+                <div class="font-bold text-sm text-slate-900">Berdua</div>
+                <div class="text-xs text-slate-500 font-medium mt-0.5">Hadir 1 / Hadir 2 / Tidak Hadir</div>
+              </div>
+              <div class="check-badge hidden absolute top-3 right-3 w-5 h-5 bg-slate-900 text-white rounded-full items-center justify-center font-bold text-[10px] shadow">✓</div>
+            </label>
+
+          </div>
+        </div>
+        
+        <!-- PILIHAN PDF ATUR CARA -->
+        <div class="p-5 bg-slate-50/80 border border-slate-200 rounded-2xl space-y-3">
+          <label class="flex items-center gap-3 font-bold text-sm text-slate-800 cursor-pointer select-none">
+            <input type="checkbox" id="admin_enable_pdf" onclick="togglePdfInput(this.checked)" class="w-4 h-4 rounded border-slate-300 text-slate-900 focus:ring-slate-900 accent-slate-900 transition">
+            <span>Sediakan pautan download PDF Atur Cara</span>
+          </label>
+          
+          <div id="pdf-input-container" class="hidden pt-3 border-t border-slate-200">
+            <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-1.5">Pautan PDF Atur Cara (Google Drive / Direct Link) <span class="text-red-500">*</span></label>
+            <input type="url" id="admin_pdf_url" class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="https://drive.google.com/file/d/.../view">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">No. WhatsApp Urus Setia (Format: 60123456789) <span class="text-red-500">*</span></label>
+          <input type="tel" id="admin_whatsapp_no" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="Contoh: 60123456789" required>
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Google Sheets Web App URL <span class="text-red-500">*</span></label>
+          <input type="url" id="admin_sheets_url" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="https://script.google.com/macros/s/.../exec" required>
+        </div>
+
+        <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl transition duration-200 shadow-lg shadow-slate-900/20 active:scale-[0.99] uppercase tracking-wider text-sm mt-4">Simpan / Kemas Kini Majlis</button>
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    const DEFAULT_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxeya0XbPtC6q3zE1AlHqA_zcDOFR-2g6CmGjjV0LMzHOw1h-_rPz8dZLemzizfqfmmdw/exec';
+
+    let config = {
+      namaMajlis: '',
+      tarikh: '',
+      masa: '',
+      lokasi: '',
+      maxGuests: '1',
+      hasPdf: false,
+      pdfUrl: '',
+      whatsappNo: '',
+      sheetsUrl: ''
+    };
+
+
+    function togglePdfInput(checked) {
+      const container = document.getElementById('pdf-input-container');
+      const pdfUrlInput = document.getElementById('admin_pdf_url');
+      if (checked) {
+        container.classList.remove('hidden');
+        pdfUrlInput.required = true;
+      } else {
+        container.classList.add('hidden');
+        pdfUrlInput.required = false;
+        pdfUrlInput.value = '';
+      }
+    }
+
+    function switchTab(tab) {
+      // Admin page is intentionally separate from the public guest form.
+      // Kept for compatibility; opening the public form uses guest.html.
+      if (tab === 'guest') window.open('index.html', '_blank');
+    }
+
+    // Load existing configuration from Google Sheets.
+    (function loadAdminUrl() {
+      try {
+        const savedUrl = localStorage.getItem('attendanceSheetsUrl') || DEFAULT_SHEETS_URL;
+        document.getElementById('admin_sheets_url').value = savedUrl;
+        loadEvents();
+      } catch (e) {
+        console.error('Gagal memuat URL backend:', e);
+      }
+    })();
+
+    async function loadEvents() {
+      const url = document.getElementById('admin_sheets_url').value.trim();
+      const list = document.getElementById('event-list');
+      if (!url) { list.innerHTML = '<div class="text-sm text-slate-500 bg-slate-50 rounded-xl p-4">Masukkan URL Google Sheets Web App untuk melihat majlis.</div>'; return; }
+      try {
+        const res = await fetch(url + '?t=' + Date.now());
+        const data = await res.json();
+        if (data.result !== 'success') throw new Error(data.message || 'Gagal memuatkan majlis.');
+        window.__events = data.events || [];
+        filterEvents();
+      } catch (err) {
+        list.innerHTML = '<div class="text-sm text-red-600 bg-red-50 rounded-xl p-4">Gagal memuatkan senarai: ' + escapeHtml(err.message) + '</div>';
+      }
+    }
+
+    function renderEvents(events) {
+      const list = document.getElementById('event-list');
+      const info = document.getElementById('event-search-info');
+      if (!events.length) {
+        list.innerHTML = '<div class="text-sm text-slate-500 bg-slate-50 rounded-xl p-4">Tiada majlis yang sepadan dengan carian.</div>';
+        info.classList.add('hidden');
+        return;
+      }
+      const query = (document.getElementById('event-search')?.value || '').trim();
+      info.textContent = query ? `${events.length} majlis dijumpai` : `${events.length} majlis`;
+      info.classList.remove('hidden');
+      list.innerHTML = events.map(ev => {
+        const link = 'index.html?idMajlis=' + encodeURIComponent(ev.idMajlis);
+        const status = ev.status || 'Aktif';
+        const statusButton = status === 'Aktif'
+          ? `<button type="button" onclick="toggleEventStatus('${encodeURIComponent(ev.idMajlis)}','Ditutup')" class="px-4 py-2.5 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 text-xs font-extrabold">Tutup Borang</button>`
+          : `<button type="button" onclick="toggleEventStatus('${encodeURIComponent(ev.idMajlis)}','Aktif')" class="px-4 py-2.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-extrabold">Buka Semula</button>`;
+        return `<div class="border border-slate-200 rounded-2xl p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><span class="px-2 py-1 rounded-lg bg-slate-100 text-slate-700 text-[10px] font-black">${escapeHtml(ev.idMajlis)}</span><span class="px-2 py-1 rounded-lg ${status === 'Aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'} text-[10px] font-black">${escapeHtml(status)}</span></div><h3 class="font-extrabold text-slate-900 mt-2">${escapeHtml(ev.namaMajlis)}</h3><p class="text-xs text-slate-500 mt-1">${escapeHtml(ev.tarikh || '-')} · ${escapeHtml(ev.masa || '-')} · ${escapeHtml(ev.lokasi || '-')}</p><p class="text-xs text-slate-600 mt-2 font-semibold">📞 No. Urusetia: <span class="font-bold text-slate-900">${escapeHtml(ev.whatsappNo || '-')}</span></p></div>
+          <div class="flex flex-wrap gap-2"><button type="button" onclick="editEvent('${encodeURIComponent(ev.idMajlis)}')" class="px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-extrabold">Edit</button><a href="${link}" target="_blank" class="px-4 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-extrabold">Buka Borang</a><button type="button" onclick="copyEventLink('${link}')" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 text-xs font-extrabold">Salin Link</button>${statusButton}<button type="button" onclick="deleteEvent('${encodeURIComponent(ev.idMajlis)}')" class="px-4 py-2.5 rounded-xl bg-red-100 text-red-700 border border-red-200 text-xs font-extrabold">Delete</button></div>
+        </div>`;
+      }).join('');
+    }
+
+    function filterEvents() {
+      const q = (document.getElementById('event-search').value || '').toLowerCase().trim();
+      const filtered = (window.__events || []).filter(ev =>
+        [ev.idMajlis, ev.namaMajlis, ev.tarikh, ev.masa, ev.lokasi, ev.whatsappNo, ev.status]
+          .some(v => String(v || '').toLowerCase().includes(q))
+      );
+      renderEvents(filtered);
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+    }
+
+    function startNewEvent() {
+      const savedSheetsUrl = document.getElementById('admin_sheets_url').value.trim() || DEFAULT_SHEETS_URL;
+      document.getElementById('adminForm').reset();
+      document.getElementById('admin_sheets_url').value = savedSheetsUrl;
+      document.getElementById('admin_event_id').value = '';
+      document.getElementById('admin_event_status').value = 'Aktif';
+      document.getElementById('pdf-input-container').classList.add('hidden');
+      document.getElementById('admin_pdf_url').required = false;
+      document.querySelector('input[name="admin_max_guests"][value="1"]').checked = true;
+      document.querySelectorAll('.check-badge').forEach(x => x.classList.add('hidden'));
+      window.scrollTo({top: document.getElementById('adminForm').offsetTop - 30, behavior: 'smooth'});
+    }
+
+    function editEvent(encodedId) {
+      const id = decodeURIComponent(encodedId);
+      const ev = (window.__events || []).find(x => String(x.idMajlis) === id);
+      if (!ev) return;
+      document.getElementById('admin_event_id').value = ev.idMajlis;
+      document.getElementById('admin_event_status').value = ev.status || 'Aktif';
+      document.getElementById('admin_nama_majlis').value = ev.namaMajlis || '';
+      document.getElementById('admin_tarikh').value = toInputDate(ev.tarikh);
+      document.getElementById('admin_masa').value = toInputTime(ev.masa);
+      document.getElementById('admin_lokasi').value = ev.lokasi || '';
+      const radio = document.querySelector('input[name="admin_max_guests"][value="' + (ev.maxGuests || '1') + '"]');
+      if (radio) radio.checked = true;
+      document.getElementById('admin_enable_pdf').checked = !!ev.pdfUrl;
+      document.getElementById('admin_pdf_url').value = ev.pdfUrl || '';
+      togglePdfInput(!!ev.pdfUrl);
+      document.getElementById('admin_whatsapp_no').value = ev.whatsappNo || '';
+      window.scrollTo({top: document.getElementById('adminForm').offsetTop - 30, behavior: 'smooth'});
+    }
+
+    function toInputDate(v) {
+      if (!v) return '';
+      const m = String(v).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      return m ? `${m[3]}-${m[2]}-${m[1]}` : String(v).slice(0,10);
+    }
+    function toInputTime(v) {
+      if (!v) return '';
+      const m = String(v).match(/(\d{1,2}):(\d{2})/);
+      return m ? String(m[1]).padStart(2,'0') + ':' + m[2] : String(v).slice(0,5);
+    }
+    async function toggleEventStatus(encodedId, newStatus) {
+      const id = decodeURIComponent(encodedId);
+      const url = document.getElementById('admin_sheets_url').value.trim() || DEFAULT_SHEETS_URL;
+      const actionText = newStatus === 'Ditutup' ? 'menutup' : 'membuka semula';
+      if (!confirm('Adakah anda pasti mahu ' + actionText + ' borang untuk ' + id + '?')) return;
+
+      try {
+        const endpoint = url + (url.includes('?') ? '&' : '?') +
+          'action=status&idMajlis=' + encodeURIComponent(id) +
+          '&status=' + encodeURIComponent(newStatus) + '&t=' + Date.now();
+
+        const response = await fetch(endpoint, { cache: 'no-store' });
+        const result = await response.json();
+
+        if (result.result !== 'success') {
+          throw new Error(result.message || 'Status gagal dikemas kini.');
+        }
+
+        alert(newStatus === 'Ditutup' ? 'Borang majlis telah ditutup.' : 'Borang majlis telah dibuka semula.');
+        await loadEvents();
+      } catch (error) {
+        console.error(error);
+        alert('Ralat mengemas kini status: ' + error.message);
+      }
+    }
+
+    async function copyEventLink(link) {
+      const full = new URL(link, window.location.href).href;
+      try { await navigator.clipboard.writeText(full); alert('Link borang berjaya disalin.'); }
+      catch(e) { prompt('Salin link ini:', full); }
+    }
+
+    async function deleteEvent(encodedId) {
+      const id = decodeURIComponent(encodedId);
+      const url = document.getElementById('admin_sheets_url').value.trim() || DEFAULT_SHEETS_URL;
+      const ev = (window.__events || []).find(x => String(x.idMajlis) === id);
+      const name = ev ? ev.namaMajlis : id;
+
+      if (!confirm('Adakah anda pasti mahu delete majlis ' + id + ' - ' + name + '?\n\nRekod majlis akan dibuang daripada Senarai Majlis. Rekod kehadiran sedia ada tidak dipadam.')) return;
+
+      try {
+        // Guna POST supaya sama seperti fungsi Simpan dan lebih stabil untuk Apps Script.
+        await fetch(url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ type: 'delete', idMajlis: id })
+        });
+
+        // Beri Apps Script masa untuk tulis ke Google Sheet.
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        alert('Permintaan delete telah dihantar. Senarai akan dikemas kini.');
+        await loadEvents();
+      } catch (error) {
+        console.error(error);
+        alert('Ralat memadam majlis: ' + error.message);
+      }
+    }
+
+    document.getElementById('admin_sheets_url').addEventListener('change', loadEvents);
+    document.getElementById('admin_sheets_url').addEventListener('blur', loadEvents);
+
+    // 1. ADMIN SIMPAN TETAPAN
+    document.getElementById('adminForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      config.namaMajlis = document.getElementById('admin_nama_majlis').value.trim();
+      config.tarikh = document.getElementById('admin_tarikh').value;
+      config.masa = document.getElementById('admin_masa').value;
+      config.lokasi = document.getElementById('admin_lokasi').value.trim();
+      const selectedMaxGuests = document.querySelector('input[name="admin_max_guests"]:checked');
+      config.maxGuests = selectedMaxGuests ? selectedMaxGuests.value : '1';
+      config.hasPdf = document.getElementById('admin_enable_pdf').checked;
+      config.pdfUrl = document.getElementById('admin_pdf_url').value.trim();
+      config.whatsappNo = document.getElementById('admin_whatsapp_no').value.replace(/[^0-9]/g, '');
+      config.sheetsUrl = document.getElementById('admin_sheets_url').value.trim() || DEFAULT_SHEETS_URL;
+
+      if (!config.sheetsUrl) {
+        alert("Sila masukkan Google Sheets Web App URL terlebih dahulu.");
+        return;
+      }
+
+      try {
+        localStorage.setItem('attendanceSheetsUrl', config.sheetsUrl);
+
+        const payload = {
+          type: 'config',
+          idMajlis: document.getElementById('admin_event_id').value.trim(),
+          status: document.getElementById('admin_event_status').value || 'Aktif',
+          namaMajlis: config.namaMajlis,
+          tarikh: config.tarikh,
+          masa: config.masa,
+          lokasi: config.lokasi,
+          maxGuests: config.maxGuests,
+          pdfUrl: config.hasPdf ? config.pdfUrl : '',
+          whatsappNo: config.whatsappNo
+        };
+
+        // Google Apps Script Web App: guna simple request supaya browser tidak tersekat oleh CORS preflight.
+        await fetch(config.sheetsUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        // Beri masa kepada Apps Script menulis ke Sheet, kemudian baca semula senarai.
+        await new Promise(resolve => setTimeout(resolve, 1200));
+        alert("Majlis berjaya disimpan.\n\nLink borang tetamu boleh digunakan melalui senarai majlis.");
+        await loadEvents();
+        startNewEvent();
+      } catch (error) {
+        console.error(error);
+        alert("Ralat menyimpan tetapan ke Google Sheets:\n" + error.message);
+      }
+
+    });
+
+  </script>
+</body>
+</html>

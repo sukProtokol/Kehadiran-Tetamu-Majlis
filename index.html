@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistem Kehadiran Majlis - Borang Tetamu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white !important; padding: 0 !important; }
+      .print-shadow-none { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
+    }
+    .radio-card { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+    .radio-card:hover { transform: translateY(-2px); }
+    .radio-card:has(input:checked) {
+      border-color: #0f172a !important;
+      background-color: #f8fafc !important;
+      box-shadow: 0 10px 15px -3px rgba(15,23,42,.08),0 4px 6px -4px rgba(15,23,42,.03);
+    }
+    .radio-card:has(input:checked) .icon-box { background-color:#0f172a !important;color:#fff !important;transform:scale(1.05); }
+    .radio-card:has(input:checked) .check-badge { display:flex !important; animation:popIn .2s ease-out forwards; }
+    @keyframes popIn { 0% { transform:scale(.5);opacity:0 } 100% { transform:scale(1);opacity:1 } }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 via-slate-50 to-slate-200 min-h-screen py-8 px-4 font-sans text-slate-800 antialiased selection:bg-slate-900 selection:text-white">
+  <div class="max-w-3xl mx-auto">
+
+    <div class="no-print bg-white/80 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-xl shadow-slate-200/50 mb-6 border border-slate-200/80 flex items-center gap-3.5">
+      <div class="w-12 h-12 rounded-xl bg-slate-900/5 p-1.5 flex items-center justify-center border border-slate-200/60 shadow-inner">
+        <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Coat_of_arms_of_Kedah.svg/3840px-Coat_of_arms_of_Kedah.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Logo Kedah" class="max-h-full max-w-full object-contain">
+      </div>
+      <div>
+        <h1 class="font-extrabold text-base sm:text-lg uppercase tracking-wider text-slate-900">Sistem Kehadiran Majlis</h1>
+        <p class="text-xs text-slate-500 font-semibold">Negeri Kedah Darul Aman</p>
+      </div>
+    </div>
+
+    <div id="config-error" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-rose-200 text-center">
+      <div class="text-4xl mb-4">⚠️</div>
+      <h2 class="text-xl font-extrabold text-slate-900">Borang Belum Diaktifkan</h2>
+      <p class="text-sm text-slate-500 mt-2">Sila hubungi urus setia majlis untuk mendapatkan pautan borang yang aktif.</p>
+    </div>
+
+    <div id="closed-section" class="hidden bg-white p-8 rounded-3xl shadow-xl border border-amber-200 text-center">
+      <div class="text-5xl mb-4">🔒</div>
+      <h2 class="text-xl font-extrabold text-slate-900">Borang Kehadiran Ditutup</h2>
+      <p id="closed-message" class="text-sm text-slate-500 mt-2">Pendaftaran untuk majlis ini telah ditutup.</p>
+      <div class="mt-5 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+        Sila hubungi urus setia jika mempunyai sebarang pertanyaan.
+      </div>
+    </div>
+
+    <!-- ==================== BAHAGIAN 2: BORANG TETAMU ==================== -->
+    <div id="guest-section" class="bg-white p-6 sm:p-8 rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 hidden transition-all">
+      
+      <!-- HEADER MAJLIS DI KAD TETAMU -->
+      <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-6 sm:p-8 rounded-2xl mb-8 text-center shadow-xl shadow-slate-900/10 relative overflow-hidden print-shadow-none">
+        <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+        
+        <!-- LOGO JATA KEDAH -->
+        <div class="mb-4 flex justify-center">
+          <div class="w-20 h-20 bg-white/10 backdrop-blur-md rounded-2xl p-2 border border-white/20 shadow-lg flex items-center justify-center">
+            <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/1/11/Coat_of_arms_of_Kedah.svg/3840px-Coat_of_arms_of_Kedah.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Logo Jata Kedah" class="max-h-full max-w-full object-contain filter drop-shadow-md">
+          </div>
+        </div>
+
+        <h2 id="display_nama_majlis" class="text-xl sm:text-2xl font-black uppercase tracking-wider text-white">Nama Majlis Belum Ditetapkan</h2>
+        <div class="mt-4 text-slate-300 text-xs sm:text-sm font-semibold flex flex-wrap justify-center gap-3 sm:gap-4">
+          <span class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">📅 <span id="display_tarikh" class="text-white ml-1">-</span></span>
+          <span class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">⏰ <span id="display_masa" class="text-white ml-1">-</span></span>
+          <span class="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm">📍 <span id="display_lokasi" class="text-white ml-1">-</span></span>
+        </div>
+        
+        <div id="pdf-button-wrapper" class="mt-5 pt-5 border-t border-white/10 no-print hidden">
+          <a id="btn_download_pdf" href="#" target="_blank" class="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold py-2.5 px-5 rounded-xl transition shadow-lg shadow-rose-600/30 active:scale-95">
+            📄 Download Atur Cara Majlis (PDF)
+          </a>
+        </div>
+      </div>
+
+      <!-- BORANG KEHADIRAN -->
+      <form id="attendanceForm" class="space-y-6">
+        <h3 class="text-base font-extrabold text-slate-900 pb-3 border-b border-slate-100 flex items-center gap-2">
+          <span>👤</span> Maklumat Tetamu / Jemputan
+        </h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div>
+            <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Gelaran <span class="text-red-500">*</span></label>
+            <select id="gelaran" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" required>
+              <option value="">-- Pilih Gelaran --</option>
+              <option value="YBhg. Tan Sri">YBhg. Tan Sri</option>
+              <option value="YB Dato' Seri">YB Dato' Seri</option>
+              <option value="YB Dato">YB Dato</option>
+              <option value="YB">YB</option>
+              <option value="YBhg. Datuk">YBhg. Datuk</option>
+              <option value="YBhg. Dato'">YBhg. Dato'</option>
+              <option value="YBhg. Datin">YBhg. Datin</option>
+              <option value="Dr.">Dr.</option>
+              <option value="Encik">Encik</option>
+              <option value="Puan">Puan</option>
+              <option value="Cik">Cik</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Nama Penuh <span class="text-red-500">*</span></label>
+            <input type="text" id="nama_penuh" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="Masukkan nama jemputan asal" required>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Jawatan <span class="text-red-500">*</span></label>
+            <input type="text" id="jawatan" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="Contoh: Pengarah Urusan" required>
+          </div>
+          <div>
+            <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Jabatan / Agensi <span class="text-red-500">*</span></label>
+            <input type="text" id="jabatan" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="Contoh: Pejabat Setiausaha Kerajaan Negeri Kedah" required>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-2">Nombor Telefon <span class="text-red-500">*</span></label>
+          <input type="tel" id="no_tel" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-slate-900 focus:border-slate-900 outline-none font-medium transition text-sm" placeholder="Contoh: 012-3456789" required>
+        </div>
+
+        <!-- PILIHAN STATUS KEHADIRAN -->
+        <div class="pt-2">
+          <label class="block text-xs uppercase tracking-wider font-extrabold text-slate-700 mb-3">Status Kehadiran <span class="text-red-500">*</span></label>
+          
+          <div id="status-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            
+            <!-- Hadir (1 Orang) -->
+            <label id="option_hadir_1" class="radio-card cursor-pointer border-2 border-slate-200 rounded-2xl p-4 flex items-center gap-3.5 bg-white relative">
+              <input type="radio" name="status_kehadiran" value="Hadir (1 Orang)" onclick="handleStatusChange('hadir_1')" class="sr-only" required>
+              <div class="icon-box w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold transition-all shadow-sm">🙋‍♂️</div>
+              <div>
+                <div id="label_hadir_single" class="font-bold text-sm text-slate-900">Hadir</div>
+                <div id="sub_hadir_single" class="text-xs text-slate-500 font-medium hidden">1 Kerusi</div>
+              </div>
+              <div class="check-badge hidden absolute top-3 right-3 w-5 h-5 bg-slate-900 text-white rounded-full items-center justify-center font-bold text-[10px] shadow">✓</div>
+            </label>
+
+            <!-- Hadir 2 Orang (Muncul jika Admin pilih Berdua) -->
+            <label id="option_hadir_2" class="radio-card hidden cursor-pointer border-2 border-slate-200 rounded-2xl p-4 items-center gap-3.5 bg-white relative">
+              <input type="radio" name="status_kehadiran" value="Hadir (2 Orang)" onclick="handleStatusChange('hadir_2')" class="sr-only">
+              <div class="icon-box w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold transition-all shadow-sm">👥</div>
+              <div>
+                <div class="font-bold text-sm text-slate-900">Hadir (2 Orang)</div>
+                <div class="text-xs text-slate-500 font-medium mt-0.5">Bersama Pasangan</div>
+              </div>
+              <div class="check-badge hidden absolute top-3 right-3 w-5 h-5 bg-slate-900 text-white rounded-full items-center justify-center font-bold text-[10px] shadow">✓</div>
+            </label>
+
+            <!-- Diwakili (Muncul jika Admin pilih Seorang) -->
+            <label id="option_wakil" class="radio-card cursor-pointer border-2 border-slate-200 rounded-2xl p-4 flex items-center gap-3.5 bg-white relative">
+              <input type="radio" name="status_kehadiran" value="Diwakili" onclick="handleStatusChange('wakil')" class="sr-only">
+              <div class="icon-box w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold transition-all shadow-sm">👔</div>
+              <div>
+                <div class="font-bold text-sm text-slate-900">Diwakili</div>
+                <div class="text-xs text-slate-500 font-medium mt-0.5">Hantar Wakil</div>
+              </div>
+              <div class="check-badge hidden absolute top-3 right-3 w-5 h-5 bg-slate-900 text-white rounded-full items-center justify-center font-bold text-[10px] shadow">✓</div>
+            </label>
+
+            <!-- Tidak Hadir -->
+            <label id="option_tidak_hadir" class="radio-card cursor-pointer border-2 border-slate-200 rounded-2xl p-4 flex items-center gap-3.5 bg-white relative">
+              <input type="radio" name="status_kehadiran" value="Tidak Hadir" onclick="handleStatusChange('tidak_hadir')" class="sr-only">
+              <div class="icon-box w-11 h-11 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl font-bold transition-all shadow-sm">❌</div>
+              <div>
+                <div class="font-bold text-sm text-slate-900">Tidak Hadir</div>
+                <div class="text-xs text-slate-500 font-medium mt-0.5">Mohon Maaf</div>
+              </div>
+              <div class="check-badge hidden absolute top-3 right-3 w-5 h-5 bg-slate-900 text-white rounded-full items-center justify-center font-bold text-[10px] shadow">✓</div>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- MAKLUMAT ORANG KEDUA -->
+        <div id="person2-container" class="hidden p-5 sm:p-6 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-4">
+          <h4 class="font-extrabold text-emerald-950 uppercase text-xs tracking-wider border-b border-emerald-200/60 pb-2 flex items-center gap-2">
+            <span>👥</span> Maklumat Orang Kedua (Pengiring / Pasangan)
+          </h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs uppercase tracking-wider font-extrabold text-emerald-900 mb-1.5">Nama Penuh Orang Kedua <span class="text-red-500">*</span></label>
+              <input type="text" id="nama_p2" class="w-full px-4 py-3 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none font-medium text-sm" placeholder="Nama Pasangan / Pengiring">
+            </div>
+            <div>
+              <label class="block text-xs uppercase tracking-wider font-extrabold text-emerald-900 mb-1.5">Jawatan / Hubungan <span class="text-red-500">*</span></label>
+              <input type="text" id="jawatan_p2" class="w-full px-4 py-3 bg-white border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none font-medium text-sm" placeholder="Contoh: Suami / Isteri / Pegawai">
+            </div>
+          </div>
+        </div>
+
+        <!-- MAKLUMAT WAKIL -->
+        <div id="wakil-container" class="hidden p-5 sm:p-6 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-4">
+          <h4 class="font-extrabold text-amber-950 uppercase text-xs tracking-wider border-b border-amber-200/60 pb-2 flex items-center gap-2">
+            <span>👔</span> Maklumat Pegawai Yang Mewakili
+          </h4>
+          <div>
+            <label class="block text-xs uppercase tracking-wider font-extrabold text-amber-900 mb-1.5">Nama Penuh Wakil <span class="text-red-500">*</span></label>
+            <input type="text" id="nama_wakil" class="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-600 focus:border-amber-600 outline-none font-medium text-sm" placeholder="Masukkan nama wakil yang hadir">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs uppercase tracking-wider font-extrabold text-amber-900 mb-1.5">Jawatan Wakil <span class="text-red-500">*</span></label>
+              <input type="text" id="jawatan_wakil" class="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-600 focus:border-amber-600 outline-none font-medium text-sm" placeholder="Contoh: Penolong Pengarah">
+            </div>
+            <div>
+              <label class="block text-xs uppercase tracking-wider font-extrabold text-amber-900 mb-1.5">No. Telefon Wakil <span class="text-red-500">*</span></label>
+              <input type="tel" id="no_tel_wakil" class="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl focus:ring-2 focus:ring-amber-600 focus:border-amber-600 outline-none font-medium text-sm" placeholder="Contoh: 019-8765432">
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-4 no-print">
+          <!-- BUTTON BERTUKAR KEPADA SEMAK MAKLUMAT -->
+          <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl transition duration-200 shadow-lg shadow-slate-900/20 active:scale-[0.99] uppercase tracking-wider text-sm flex items-center justify-center gap-2">
+            🔍 Semak Maklumat Kehadiran
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ==================== POPUP / MODAL SEMAKAN MAKLUMAT ==================== -->
+    <div id="preview-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <!-- Header Popup -->
+        <div class="bg-slate-900 text-white p-5 sm:p-6 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📋</span>
+            <div>
+              <h3 class="font-extrabold text-base sm:text-lg">Pengesahan Maklumat</h3>
+              <p class="text-xs text-slate-300 font-medium">Sila semak maklumat sebelum hantar</p>
+            </div>
+          </div>
+          <button onclick="closePreviewModal()" class="text-slate-400 hover:text-white text-xl font-bold p-1">✕</button>
+        </div>
+
+        <!-- Kandungan Ringkasan -->
+        <div class="p-6 space-y-4 overflow-y-auto text-sm">
+          
+          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+            <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Majlis</span>
+            <span id="prev_majlis" class="font-bold text-slate-800">-</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Nama Tetamu</span>
+              <span id="prev_nama" class="font-bold text-slate-800">-</span>
+            </div>
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">No. Telefon</span>
+              <span id="prev_notel" class="font-bold text-slate-800">-</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Jawatan</span>
+              <span id="prev_jawatan" class="font-bold text-slate-800">-</span>
+            </div>
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Jabatan / Agensi</span>
+              <span id="prev_jabatan" class="font-bold text-slate-800">-</span>
+            </div>
+          </div>
+
+          <div class="p-3.5 bg-slate-900 text-white rounded-xl shadow-inner">
+            <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Status Kehadiran</span>
+            <span id="prev_status" class="font-extrabold text-emerald-400 text-base uppercase">-</span>
+          </div>
+
+          <!-- Pilihan Orang Kedua / Wakil -->
+          <div id="prev_extra_container" class="hidden p-4 bg-amber-50 rounded-xl border border-amber-200/80 space-y-2">
+            <span id="prev_extra_title" class="block text-[10px] uppercase font-black text-amber-700 tracking-wider">Maklumat Tambahan</span>
+            <div id="prev_extra_content" class="text-xs font-semibold text-amber-900 space-y-1"></div>
+          </div>
+
+        </div>
+
+        <!-- Footer Popup / Butang Hantar -->
+        <div class="p-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+          <button onclick="closePreviewModal()" class="w-full sm:w-1/3 py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-extrabold rounded-xl text-xs transition">
+            ✏️ Edit Semula
+          </button>
+          <button onclick="confirmAndSubmit()" id="btn-confirm-submit" class="w-full sm:w-2/3 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+            <span>💬</span> Sahkan & Hantar ke WhatsApp
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ==================== POPUP / MODAL SEMAKAN MAKLUMAT ==================== -->
+    <div id="preview-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col max-h-[90vh]">
+        
+        <!-- Header Popup -->
+        <div class="bg-slate-900 text-white p-5 sm:p-6 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">📋</span>
+            <div>
+              <h3 class="font-extrabold text-base sm:text-lg">Pengesahan Maklumat</h3>
+              <p class="text-xs text-slate-300 font-medium">Sila semak maklumat sebelum hantar</p>
+            </div>
+          </div>
+          <button onclick="closePreviewModal()" class="text-slate-400 hover:text-white text-xl font-bold p-1">✕</button>
+        </div>
+
+        <!-- Kandungan Ringkasan -->
+        <div class="p-6 space-y-4 overflow-y-auto text-sm">
+          
+          <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+            <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Majlis</span>
+            <span id="prev_majlis" class="font-bold text-slate-800">-</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Nama Tetamu</span>
+              <span id="prev_nama" class="font-bold text-slate-800">-</span>
+            </div>
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">No. Telefon</span>
+              <span id="prev_notel" class="font-bold text-slate-800">-</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Jawatan</span>
+              <span id="prev_jawatan" class="font-bold text-slate-800">-</span>
+            </div>
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80">
+              <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Jabatan / Agensi</span>
+              <span id="prev_jabatan" class="font-bold text-slate-800">-</span>
+            </div>
+          </div>
+
+          <div class="p-3.5 bg-slate-900 text-white rounded-xl shadow-inner">
+            <span class="block text-[10px] uppercase font-black text-slate-400 tracking-wider">Status Kehadiran</span>
+            <span id="prev_status" class="font-extrabold text-emerald-400 text-base uppercase">-</span>
+          </div>
+
+          <!-- Pilihan Orang Kedua / Wakil -->
+          <div id="prev_extra_container" class="hidden p-4 bg-amber-50 rounded-xl border border-amber-200/80 space-y-2">
+            <span id="prev_extra_title" class="block text-[10px] uppercase font-black text-amber-700 tracking-wider">Maklumat Tambahan</span>
+            <div id="prev_extra_content" class="text-xs font-semibold text-amber-900 space-y-1"></div>
+          </div>
+
+        </div>
+
+        <!-- Footer Popup / Butang Hantar -->
+        <div class="p-5 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-3">
+          <button onclick="closePreviewModal()" class="w-full sm:w-1/3 py-3 px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-extrabold rounded-xl text-xs transition">
+            ✏️ Edit Semula
+          </button>
+          <button onclick="confirmAndSubmit()" id="btn-confirm-submit" class="w-full sm:w-2/3 py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs transition shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
+            <span>💬</span> Sahkan & Hantar ke WhatsApp
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ==================== PENGESAHAN & BACKUP BUTTON ==================== -->
+    <div id="success-section" class="bg-white p-8 sm:p-10 rounded-3xl shadow-xl shadow-slate-200/60 border border-slate-200/80 hidden text-center transition-all">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full mb-5 font-bold text-3xl shadow-inner">
+        ✔
+      </div>
+      <h2 class="text-2xl font-extrabold text-slate-900">Maklumat Disimpan!</h2>
+      <p class="text-slate-500 text-sm font-semibold mt-1">Sistem sedang mengalihkan anda ke WhatsApp...</p>
+
+      <div class="mt-8 p-6 bg-emerald-50/80 border border-emerald-200 rounded-2xl text-left">
+        <h4 class="font-extrabold text-emerald-950 text-center uppercase tracking-wider text-xs mb-1">📲 JIKA WHATSAPP TIDAK TERBUKA SECARA AUTOMATIK:</h4>
+        <p class="text-xs text-emerald-700 text-center mb-5 font-medium">Sila tekan butang hijau di bawah untuk membuka aplikasi WhatsApp secara manual.</p>
+        
+        <a id="btn_whatsapp_manual" href="#" target="_blank" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3.5 px-5 rounded-xl transition shadow-lg shadow-emerald-600/20 active:scale-[0.99] w-full text-center uppercase tracking-wider text-sm">
+          💬 BUKA WHATSAPP SEKARANG
+        </a>
+      </div>
+
+      <div class="mt-8 flex flex-wrap gap-3 no-print">
+        <button id="btn-new-form" onclick="resetGuestForm()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-800 font-extrabold py-3.5 rounded-xl transition border border-slate-200 text-sm">Isi Borang Baharu</button>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script>
+    let config = {
+      namaMajlis: '',
+      tarikh: '',
+      masa: '',
+      lokasi: '',
+      maxGuests: '1',
+      hasPdf: false,
+      pdfUrl: '',
+      whatsappNo: '',
+      sheetsUrl: ''
+    };
+
+    let globalFormData = {};
+
+    const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxeya0XbPtC6q3zE1AlHqA_zcDOFR-2g6CmGjjV0LMzHOw1h-_rPz8dZLemzizfqfmmdw/exec';
+    const EVENT_ID = new URLSearchParams(window.location.search).get('idMajlis');
+
+    function formatDateDisplay(value) {
+      const v = String(value || '').trim();
+      let m = v.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+      m = v.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+      return v || '-';
+    }
+
+    function formatTimeDisplay(value) {
+      const v = String(value || '').trim();
+      const m = v.match(/^(\d{1,2}):(\d{2})/);
+      if (m) {
+        let hour = Number(m[1]);
+        const minute = m[2];
+        if (hour >= 0 && hour <= 23) {
+          const period = hour >= 12 ? 'PM' : 'AM';
+          hour = hour % 12 || 12;
+          return `${String(hour).padStart(2, '0')}:${minute} ${period}`;
+        }
+      }
+      return v || '-';
+    }
+
+    async function loadConfig() {
+      const guest = document.getElementById('guest-section');
+      const errorBox = document.getElementById('config-error');
+
+      if (!EVENT_ID) {
+        guest.classList.add('hidden');
+        errorBox.classList.remove('hidden');
+        errorBox.querySelector('p').textContent = 'Link majlis tidak lengkap.';
+        return false;
+      }
+
+      try {
+        const url = SHEETS_URL + '?idMajlis=' + encodeURIComponent(EVENT_ID) + '&t=' + Date.now();
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) throw new Error('Server tidak dapat dihubungi. HTTP ' + response.status);
+
+        const result = await response.json();
+        if (result.result !== 'success' || !result.config) {
+          throw new Error(result.message || 'Majlis tidak dijumpai.');
+        }
+
+        config = { ...config, ...result.config, sheetsUrl: SHEETS_URL, idMajlis: EVENT_ID };
+
+        document.getElementById('display_nama_majlis').textContent = config.namaMajlis || '-';
+        document.getElementById('display_tarikh').textContent = formatDateDisplay(config.tarikh);
+        document.getElementById('display_masa').textContent = formatTimeDisplay(config.masa);
+        document.getElementById('display_lokasi').textContent = config.lokasi || '-';
+
+        const closedSection = document.getElementById('closed-section');
+        if (String(config.status || 'Aktif') !== 'Aktif') {
+          document.getElementById('closed-message').textContent =
+            'Pendaftaran untuk ' + (config.namaMajlis || 'majlis ini') + ' telah ditutup.';
+          guest.classList.add('hidden');
+          closedSection.classList.remove('hidden');
+          errorBox.classList.add('hidden');
+          return true;
+        }
+        closedSection.classList.add('hidden');
+
+        const optionHadir2 = document.getElementById('option_hadir_2');
+        const optionWakil = document.getElementById('option_wakil');
+        const labelHadirSingle = document.getElementById('label_hadir_single');
+        const subHadirSingle = document.getElementById('sub_hadir_single');
+
+        if (String(config.maxGuests) === '2') {
+          optionHadir2.classList.remove('hidden');
+          optionHadir2.classList.add('flex');
+          optionWakil.classList.add('hidden');
+          optionWakil.classList.remove('flex');
+          labelHadirSingle.textContent = 'Hadir (1 Orang)';
+          subHadirSingle.textContent = 'Seorang Sahaja';
+          subHadirSingle.classList.remove('hidden');
+        } else {
+          optionHadir2.classList.add('hidden');
+          optionHadir2.classList.remove('flex');
+          optionWakil.classList.remove('hidden');
+          optionWakil.classList.add('flex');
+          labelHadirSingle.textContent = 'Hadir';
+          subHadirSingle.classList.add('hidden');
+        }
+
+        const pdfWrapper = document.getElementById('pdf-button-wrapper');
+        if (config.hasPdf && config.pdfUrl) {
+          document.getElementById('btn_download_pdf').href = config.pdfUrl;
+          pdfWrapper.classList.remove('hidden');
+        } else {
+          pdfWrapper.classList.add('hidden');
+        }
+
+        errorBox.classList.add('hidden');
+
+        // Jika tetamu sudah menghantar borang untuk majlis ini pada browser/peranti yang sama,
+        // terus paparkan bahawa kehadiran sudah direkodkan.
+        if (hasRecordedAttendance()) {
+          showAlreadyRecorded();
+          return true;
+        }
+
+        guest.classList.remove('hidden');
+        return true;
+      } catch (error) {
+        console.error('Gagal memuat majlis:', error);
+        guest.classList.add('hidden');
+        errorBox.classList.remove('hidden');
+        const title = errorBox.querySelector('p');
+        if (title) title.textContent = 'Majlis tidak dapat dimuatkan.';
+        const detail = errorBox.querySelector('p:nth-of-type(2)');
+        if (detail) detail.textContent = error.message || 'Sila cuba semula.';
+        return false;
+      }
+    }
+
+    function handleStatusChange(type) {
+      const wakilContainer = document.getElementById('wakil-container');
+      const p2Container = document.getElementById('person2-container');
+
+      const namaWakil = document.getElementById('nama_wakil');
+      const jawatanWakil = document.getElementById('jawatan_wakil');
+      const noTelWakil = document.getElementById('no_tel_wakil');
+
+      const namaP2 = document.getElementById('nama_p2');
+      const jawatanP2 = document.getElementById('jawatan_p2');
+
+      wakilContainer.classList.add('hidden');
+      p2Container.classList.add('hidden');
+      namaWakil.required = false;
+      jawatanWakil.required = false;
+      noTelWakil.required = false;
+      namaP2.required = false;
+      jawatanP2.required = false;
+
+      if (type === 'wakil') {
+        wakilContainer.classList.remove('hidden');
+        namaWakil.required = true;
+        jawatanWakil.required = true;
+        noTelWakil.required = true;
+      } else if (type === 'hadir_2') {
+        p2Container.classList.remove('hidden');
+        namaP2.required = true;
+        jawatanP2.required = true;
+      }
+    }
+
+    document.getElementById('attendanceForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const masaSemasa = new Date().toLocaleTimeString('ms-MY', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+      });
+      const selectedStatus = document.querySelector('input[name="status_kehadiran"]:checked').value;
+
+      globalFormData = {
+        nama_majlis: config.namaMajlis,
+        gelaran: document.getElementById('gelaran').value,
+        nama_penuh: document.getElementById('nama_penuh').value,
+        jawatan: document.getElementById('jawatan').value,
+        jabatan: document.getElementById('jabatan').value,
+        no_tel: document.getElementById('no_tel').value,
+        status_kehadiran: selectedStatus,
+        nama_p2: document.getElementById('nama_p2').value,
+        jawatan_p2: document.getElementById('jawatan_p2').value,
+        nama_wakil: document.getElementById('nama_wakil').value,
+        jawatan_wakil: document.getElementById('jawatan_wakil').value,
+        no_tel_wakil: document.getElementById('no_tel_wakil').value,
+        masa_kehadiran: masaSemasa
+      };
+
+      document.getElementById('prev_majlis').textContent = globalFormData.nama_majlis;
+      document.getElementById('prev_nama').textContent = globalFormData.gelaran + " " + globalFormData.nama_penuh;
+      document.getElementById('prev_notel').textContent = globalFormData.no_tel;
+      document.getElementById('prev_jawatan').textContent = globalFormData.jawatan;
+      document.getElementById('prev_jabatan').textContent = globalFormData.jabatan;
+      document.getElementById('prev_status').textContent = globalFormData.status_kehadiran;
+
+      const extraContainer = document.getElementById('prev_extra_container');
+      const extraTitle = document.getElementById('prev_extra_title');
+      const extraContent = document.getElementById('prev_extra_content');
+
+      if (globalFormData.status_kehadiran === 'Hadir (2 Orang)') {
+        extraContainer.classList.remove('hidden');
+        extraTitle.textContent = "MAKLUMAT ORANG KEDUA (PENGIRING)";
+        extraContent.innerHTML =
+          `<div>• <strong>Nama:</strong> ${globalFormData.nama_p2}</div><div>• <strong>Jawatan/Hubungan:</strong> ${globalFormData.jawatan_p2}</div>`;
+      } else if (globalFormData.status_kehadiran === 'Diwakili') {
+        extraContainer.classList.remove('hidden');
+        extraTitle.textContent = "MAKLUMAT WAKIL";
+        extraContent.innerHTML =
+          `<div>• <strong>Nama Wakil:</strong> ${globalFormData.nama_wakil}</div><div>• <strong>Jawatan Wakil:</strong> ${globalFormData.jawatan_wakil}</div><div>• <strong>No. Tel Wakil:</strong> ${globalFormData.no_tel_wakil}</div>`;
+      } else {
+        extraContainer.classList.add('hidden');
+      }
+
+      document.getElementById('preview-modal').classList.remove('hidden');
+    });
+
+    function closePreviewModal() {
+      document.getElementById('preview-modal').classList.add('hidden');
+    }
+
+    async function confirmAndSubmit() {
+      const btnSubmit = document.getElementById('btn-confirm-submit');
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<span>⏳</span> Menyemak status borang...`;
+
+      try {
+        const checkUrl = SHEETS_URL + '?idMajlis=' + encodeURIComponent(EVENT_ID) + '&t=' + Date.now();
+        const checkResponse = await fetch(checkUrl, { cache: 'no-store' });
+        const checkResult = await checkResponse.json();
+        if (checkResult.result !== 'success' || !checkResult.config) {
+          throw new Error(checkResult.message || 'Majlis tidak dapat disahkan.');
+        }
+        if (String(checkResult.config.status || 'Aktif') !== 'Aktif') {
+          closePreviewModal();
+          document.getElementById('guest-section').classList.add('hidden');
+          document.getElementById('closed-message').textContent =
+            'Pendaftaran untuk ' + (checkResult.config.namaMajlis || 'majlis ini') + ' telah ditutup.';
+          document.getElementById('closed-section').classList.remove('hidden');
+          btnSubmit.disabled = false;
+          btnSubmit.innerHTML = `<span>💬</span> Sahkan & Hantar ke WhatsApp`;
+          return;
+        }
+      } catch (checkError) {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<span>💬</span> Sahkan & Hantar ke WhatsApp`;
+        alert('Tidak dapat menyemak status borang. Sila cuba lagi.\n\n' + checkError.message);
+        return;
+      }
+
+      btnSubmit.innerHTML = `<span>⏳</span> Sedang Memproses...`;
+
+      let waText = "*PENGESAHAN KEHADIRAN MAJLIS*\r\n";
+      waText += "------------------------------------\r\n";
+      waText += "*Majlis:* " + globalFormData.nama_majlis + "\r\n";
+      waText += "*Nama:* " + globalFormData.gelaran + " " + globalFormData.nama_penuh + "\r\n";
+      waText += "*Jawatan:* " + globalFormData.jawatan + "\r\n";
+      waText += "*Jabatan/Agensi:* " + globalFormData.jabatan + "\r\n";
+      waText += "*No. Tel:* " + globalFormData.no_tel + "\r\n";
+      waText += "*Masa Pengesahan:* " + globalFormData.masa_kehadiran + "\r\n";
+      waText += "*Status Kehadiran:* *" + globalFormData.status_kehadiran.toUpperCase() + "*\r\n";
+
+      if (globalFormData.status_kehadiran === 'Hadir (2 Orang)') {
+        waText += "\r\n*MAKLUMAT ORANG KEDUA (PENGIRING):*\r\n";
+        waText += "• *Nama:* " + globalFormData.nama_p2 + "\r\n";
+        waText += "• *Jawatan/Hubungan:* " + globalFormData.jawatan_p2 + "\r\n";
+      } else if (globalFormData.status_kehadiran === 'Diwakili') {
+        waText += "\r\n*MAKLUMAT WAKIL HADIR:*\r\n";
+        waText += "• *Nama Wakil:* " + globalFormData.nama_wakil + "\r\n";
+        waText += "• *Jawatan Wakil:* " + globalFormData.jawatan_wakil + "\r\n";
+        waText += "• *No. Tel Wakil:* " + globalFormData.no_tel_wakil + "\r\n";
+      }
+
+      waText += "------------------------------------\r\n";
+      waText += "_Mesej dihantar secara automatik melalui borang pendaftaran._";
+
+      const encodedText = encodeURIComponent(waText);
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      let waUrl = "";
+      if (isMobile) {
+        waUrl = `whatsapp://send?phone=${config.whatsappNo}&text=${encodedText}`;
+      } else {
+        waUrl = `https://web.whatsapp.com/send?phone=${config.whatsappNo}&text=${encodedText}`;
+      }
+
+      fetch(config.sheetsUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...globalFormData, id_majlis: config.idMajlis })
+      })
+      .then(() => {
+        // Simpan status mengikut ID majlis supaya refresh/back ke page yang sama
+        // akan menunjukkan 'Kehadiran Sudah Direkodkan'.
+        markAttendanceRecorded();
+        closePreviewModal();
+        document.getElementById('guest-section').classList.add('hidden');
+        document.getElementById('success-section').classList.remove('hidden');
+        document.getElementById('btn_whatsapp_manual').href = waUrl;
+
+        setTimeout(() => {
+          window.location.href = waUrl;
+        }, 500);
+      })
+      .catch(error => {
+        alert("Ralat menghantar data: " + error);
+      })
+      .finally(() => {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = `<span>💬</span> Sahkan & Hantar ke WhatsApp`;
+      });
+    }
+
+    function getAttendanceRecordKey() {
+      return EVENT_ID ? 'attendanceRecorded_' + EVENT_ID : '';
+    }
+
+    function hasRecordedAttendance() {
+      const key = getAttendanceRecordKey();
+      if (!key) return false;
+      try {
+        return localStorage.getItem(key) === 'yes';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function markAttendanceRecorded() {
+      const key = getAttendanceRecordKey();
+      if (!key) return;
+      try {
+        localStorage.setItem(key, 'yes');
+      } catch (e) {
+        console.warn('Tidak dapat menyimpan status kehadiran pada browser.', e);
+      }
+    }
+
+    function showAlreadyRecorded() {
+      document.getElementById('guest-section').classList.add('hidden');
+      document.getElementById('success-section').classList.remove('hidden');
+
+      const title = document.querySelector('#success-section h2');
+      const message = document.querySelector('#success-section > p');
+      const whatsappBox = document.querySelector('#success-section .mt-8.p-6');
+      const newFormButton = document.getElementById('btn-new-form');
+
+      if (title) title.textContent = 'Kehadiran Sudah Direkodkan';
+      if (message) message.textContent = 'Anda telah menghantar pengesahan kehadiran untuk majlis ini.';
+      if (whatsappBox) whatsappBox.classList.add('hidden');
+      if (newFormButton) newFormButton.parentElement.classList.add('hidden');
+    }
+
+    function resetGuestForm() {
+      document.getElementById('attendanceForm').reset();
+      handleStatusChange('reset');
+      document.getElementById('success-section').classList.add('hidden');
+      document.getElementById('guest-section').classList.remove('hidden');
+    }
+
+
+    loadConfig();
+  </script>
+
+</body>
+</html>
